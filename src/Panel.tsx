@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { CATALOG, productBySku, useStore } from "./store";
 
 // Plain HTML UI reading the same store as the 3D scene.
@@ -11,6 +12,12 @@ export function Panel() {
   const view = useStore((s) => s.view);
   const toggleView = useStore((s) => s.toggleView);
   const selected = fixtures.find((f) => f.id === selectedId);
+  const [notice, setNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(null), 2500);
+    return () => clearTimeout(t);
+  }, [notice]);
 
   return (
     <aside style={{ width: 260, padding: 12, background: "#1a1b26", color: "#c0caf5", fontFamily: "system-ui", overflowY: "auto" }}>
@@ -50,7 +57,7 @@ export function Panel() {
                 {CATALOG.map((p) => (
                   <button
                     key={p.sku}
-                    onClick={() => addProduct(selected.id, p.sku, level) || alert(`No room for ${p.name} on level ${level + 1}`)}
+                    onClick={() => addProduct(selected.id, p.sku, level) || setNotice(`No room for ${p.name} on level ${level + 1}`)}
                     style={{ padding: "2px 6px", fontSize: 12, borderLeft: `5px solid ${p.color}` }}
                   >
                     + {p.name}
@@ -73,6 +80,11 @@ export function Panel() {
             </div>
           ))}
         </>
+      )}
+      {notice && (
+        <div style={{ position: "fixed", left: 12, bottom: 12, width: 236, padding: "8px 10px", borderRadius: 6, background: "#f7768e", color: "#1a1b26", fontSize: 13 }}>
+          {notice}
+        </div>
       )}
       <p style={{ fontSize: 12, opacity: 0.7, marginTop: 20 }}>Drag a fixture to move it (or arrow keys), drag the floor to orbit, scroll to zoom.</p>
     </aside>
