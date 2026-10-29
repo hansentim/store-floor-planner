@@ -1,13 +1,42 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Plane, Vector3 } from "three";
+import type { ThreeEvent } from "@react-three/fiber";
 import type { Fixture as FixtureData } from "./store";
 import { GAP, productBySku, useStore } from "./store";
 
 const PLANK = 0.05; // thickness of shelf planks and the back panel
+const FLOOR = new Plane(new Vector3(0, 1, 0), 0); // the plane y = 0, used to turn a pointer ray into a floor point
 
 export function Fixture({ fixture }: { fixture: FixtureData }) {
   const selected = useStore((s) => s.selectedId === fixture.id);
   const select = useStore((s) => s.select);
+  const setPosition = useStore((s) => s.setPosition);
+  const setDragging = useStore((s) => s.setDragging);
   const [hovered, setHovered] = useState(false);
+  // Offset from the grabbed floor point to the fixture origin, so it doesn't jump to the cursor.
+  const grab = useRef<Vector3 | null>(null);
+  const hit = new Vector3();
+
+  // Dragging: every pointer event carries the ray R3F cast from the camera through the cursor.
+  // Intersecting that ray with the floor plane gives the world point under the cursor.
+  const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    select(fixture.id);
+    if (!e.ray.intersectPlane(FLOOR, hit)) return;
+    grab.current = hit.clone().sub(new Vector3(fixture.position[0], 0, fixture.position[1]));
+    (e.target as HTMLElement).setPointerCapture(e.pointerId); // keep receiving moves even off the mesh
+    setDragging(true);
+  };
+  const onPointerMove = (e: ThreeEvent<PointerEvent>) => {
+    if (!grab.current || !e.ray.intersectPlane(FLOOR, hit)) return;
+    setPosition(fixture.id, hit.x - grab.current.x, hit.z - grab.current.z);
+  };
+  const onPointerUp = (e: ThreeEvent<PointerEvent>) => {
+    if (!grab.current) return;
+    grab.current = null;
+    (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    setDragging(false);
+  };
   const [w, h, d] = fixture.size;
   const color = selected ? "#ff9e64" : fixture.color;
   const emissive = selected ? "#ff9e64" : hovered ? "#ffffff" : "#000000";
@@ -19,13 +48,12 @@ export function Fixture({ fixture }: { fixture: FixtureData }) {
   return (
     // A group is a node in the scene graph: children inherit its transform, so moving the
     // group moves the planks and every product on them. Pointer events bubble up to it too,
-    // so clicking a product selects its fixture.
+    // so grabbing a product drags its fixture.
     <group
       position={[fixture.position[0], 0, fixture.position[1]]}
-      onClick={(e) => {
-        e.stopPropagation(); // don't let the click fall through to meshes behind this one
-        select(fixture.id);
-      }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
       onPointerOver={() => {
         setHovered(true);
         document.body.style.cursor = "pointer";

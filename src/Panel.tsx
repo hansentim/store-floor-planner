@@ -8,6 +8,8 @@ export function Panel() {
   const add = useStore((s) => s.add);
   const addProduct = useStore((s) => s.addProduct);
   const removeProduct = useStore((s) => s.removeProduct);
+  const view = useStore((s) => s.view);
+  const toggleView = useStore((s) => s.toggleView);
   const selected = fixtures.find((f) => f.id === selectedId);
 
   return (
@@ -32,6 +34,9 @@ export function Panel() {
       </ul>
       <button onClick={add} style={{ marginTop: 12, width: "100%", padding: 8 }}>
         Add shelf
+      </button>
+      <button onClick={toggleView} style={{ marginTop: 6, width: "100%", padding: 8 }}>
+        {view === "3d" ? "Show 2D plan" : "Show 3D view"}
       </button>
 
       {selected && (
@@ -69,7 +74,7 @@ export function Panel() {
           ))}
         </>
       )}
-      <p style={{ fontSize: 12, opacity: 0.7, marginTop: 20 }}>Click a fixture to select, arrow keys to move, drag to orbit.</p>
+      <p style={{ fontSize: 12, opacity: 0.7, marginTop: 20 }}>Drag a fixture to move it (or arrow keys), drag the floor to orbit, scroll to zoom.</p>
     </aside>
   );
 }

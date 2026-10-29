@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Grid, OrbitControls } from "@react-three/drei";
+import { Environment, Grid, Html, OrbitControls, OrthographicCamera, PerspectiveCamera, useProgress } from "@react-three/drei";
 import { FLOOR_SIZE, useStore } from "./store";
 import { Fixture } from "./Fixture";
 import { DisplayItem } from "./DisplayItem";
@@ -8,17 +8,31 @@ import { DisplayItem } from "./DisplayItem";
 export function Scene() {
   const fixtures = useStore((s) => s.fixtures);
   const select = useStore((s) => s.select);
+  const dragging = useStore((s) => s.dragging);
+  const view = useStore((s) => s.view);
 
   return (
-    // Canvas creates the renderer, the scene graph root and the camera.
+    // Canvas creates the renderer and the scene graph root.
     // Everything inside is a three.js object declared as JSX.
     <Canvas
       shadows
-      camera={{ position: [14, 14, 14], fov: 40 }} // isometric-ish view from a corner
       onPointerMissed={() => select(null)} // click that hits no mesh clears the selection
     >
-      {/* Lights: ambient fills everything evenly, directional acts like the sun and casts shadows. */}
-      <ambientLight intensity={0.5} />
+      {/* Two cameras: perspective (lines converge, like the eye) for the 3D view, orthographic
+          (parallel projection, no foreshortening) straight down for a true-to-scale floor plan.
+          makeDefault tells R3F and OrbitControls which one to render through. */}
+      {view === "3d" ? (
+        <PerspectiveCamera makeDefault position={[14, 14, 14]} fov={40} />
+      ) : (
+        <OrthographicCamera makeDefault position={[0, 30, 0]} zoom={28} />
+      )}
+
+      {/* Lights: ambient fills everything evenly, directional acts like the sun and casts shadows,
+          and Environment adds image-based lighting from an HDRI so PBR materials get reflections. */}
+      <ambientLight intensity={0.3} />
+      <Suspense fallback={null}>
+        <Environment preset="city" environmentIntensity={0.4} />
+      </Suspense>
       <directionalLight
         position={[10, 20, 5]}
         intensity={1.2}
@@ -45,12 +59,23 @@ export function Scene() {
       ))}
 
       {/* A glTF model streams in asynchronously; the rest of the scene renders meanwhile. */}
-      <Suspense fallback={null}>
+      <Suspense fallback={<Loader />}>
         <DisplayItem />
       </Suspense>
 
-      {/* OrbitControls: drag to orbit, scroll to zoom, right-drag to pan. */}
-      <OrbitControls makeDefault maxPolarAngle={Math.PI / 2.1} />
+      {/* OrbitControls: drag to orbit, scroll to zoom, right-drag to pan. Remounted (key) when the
+          camera changes, and rotation is off in plan view so it stays a top-down drawing. */}
+      <OrbitControls key={view} makeDefault enabled={!dragging} enableRotate={view === "3d"} maxPolarAngle={Math.PI / 2.1} />
     </Canvas>
+  );
+}
+
+// Html renders ordinary DOM on top of the canvas at a 3D position; useProgress reports loader progress.
+function Loader() {
+  const { progress } = useProgress();
+  return (
+    <Html center style={{ color: "#555", fontFamily: "system-ui", whiteSpace: "nowrap" }}>
+      Loading {Math.round(progress)} %
+    </Html>
   );
 }

@@ -30,7 +30,12 @@ export type Fixture = {
 type State = {
   fixtures: Fixture[];
   selectedId: number | null;
+  dragging: boolean; // true while a fixture is being dragged, so OrbitControls can be paused
+  view: "3d" | "plan";
   select: (id: number | null) => void;
+  setDragging: (dragging: boolean) => void;
+  toggleView: () => void;
+  setPosition: (id: number, x: number, z: number) => void;
   move: (id: number, dx: number, dz: number) => void;
   add: () => void;
   addProduct: (fixtureId: number, sku: string) => boolean; // false when no level has room
@@ -53,16 +58,20 @@ export const usedWidth = (skus: string[]) => skus.reduce((sum, sku) => sum + pro
 export const useStore = create<State>((set, get) => ({
   fixtures: seed,
   selectedId: null,
+  dragging: false,
+  view: "3d",
   select: (id) => set({ selectedId: id }),
+  setDragging: (dragging) => set({ dragging }),
+  toggleView: () => set((s) => ({ view: s.view === "3d" ? "plan" : "3d" })),
   // Snap to a 1-unit grid and keep the fixture on the floor.
-  move: (id, dx, dz) =>
+  setPosition: (id, x, z) =>
     set((s) => ({
-      fixtures: s.fixtures.map((f) =>
-        f.id === id
-          ? { ...f, position: [clamp(Math.round(f.position[0] + dx)), clamp(Math.round(f.position[1] + dz))] }
-          : f,
-      ),
+      fixtures: s.fixtures.map((f) => (f.id === id ? { ...f, position: [clamp(Math.round(x)), clamp(Math.round(z))] } : f)),
     })),
+  move: (id, dx, dz) => {
+    const f = get().fixtures.find((x) => x.id === id);
+    if (f) get().setPosition(id, f.position[0] + dx, f.position[1] + dz);
+  },
   add: () =>
     set((s) => {
       const id = Math.max(0, ...s.fixtures.map((f) => f.id)) + 1;
