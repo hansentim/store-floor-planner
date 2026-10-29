@@ -3,7 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { Grid, OrbitControls } from "@react-three/drei";
 import { FLOOR_SIZE, useStore } from "./store";
 import { Fixture } from "./Fixture";
-import { Shopper } from "./Shopper";
+import { DisplayItem } from "./DisplayItem";
 
 export function Scene() {
   const fixtures = useStore((s) => s.fixtures);
@@ -46,7 +46,7 @@ export function Scene() {
 
       {/* A glTF model streams in asynchronously; the rest of the scene renders meanwhile. */}
       <Suspense fallback={null}>
-        <Shopper />
+        <DisplayItem />
       </Suspense>
 
       {/* OrbitControls: drag to orbit, scroll to zoom, right-drag to pan. */}
