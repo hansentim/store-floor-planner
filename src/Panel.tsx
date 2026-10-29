@@ -42,21 +42,21 @@ export function Panel() {
       {selected && (
         <>
           <h2 style={{ fontSize: 16, margin: "20px 0 8px" }}>Planogram: {selected.name}</h2>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-            {CATALOG.map((p) => (
-              <button
-                key={p.sku}
-                onClick={() => addProduct(selected.id, p.sku) || alert(`No room for ${p.name} on ${selected.name}`)}
-                style={{ padding: "4px 8px", borderLeft: `6px solid ${p.color}` }}
-              >
-                + {p.name}
-              </button>
-            ))}
-          </div>
-          {/* Levels listed top to bottom, like a planogram sheet */}
+          {/* Levels listed top to bottom, like a planogram sheet, each with its own catalog row */}
           {[...selected.shelves].map((_, i, arr) => arr.length - 1 - i).map((level) => (
-            <div key={level} style={{ marginTop: 8, fontSize: 13 }}>
+            <div key={level} style={{ marginTop: 12, fontSize: 13 }}>
               <div style={{ opacity: 0.7 }}>Level {level + 1}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, margin: "4px 0" }}>
+                {CATALOG.map((p) => (
+                  <button
+                    key={p.sku}
+                    onClick={() => addProduct(selected.id, p.sku, level) || alert(`No room for ${p.name} on level ${level + 1}`)}
+                    style={{ padding: "2px 6px", fontSize: 12, borderLeft: `5px solid ${p.color}` }}
+                  >
+                    + {p.name}
+                  </button>
+                ))}
+              </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                 {selected.shelves[level].length === 0 && <span style={{ opacity: 0.4 }}>empty</span>}
                 {selected.shelves[level].map((sku, i) => (

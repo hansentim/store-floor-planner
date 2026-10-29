@@ -38,7 +38,7 @@ type State = {
   setPosition: (id: number, x: number, z: number) => void;
   move: (id: number, dx: number, dz: number) => void;
   add: () => void;
-  addProduct: (fixtureId: number, sku: string) => boolean; // false when no level has room
+  addProduct: (fixtureId: number, sku: string, level: number) => boolean; // false when the level has no room
   removeProduct: (fixtureId: number, level: number, index: number) => void;
 };
 
@@ -80,14 +80,13 @@ export const useStore = create<State>((set, get) => ({
         selectedId: id,
       };
     }),
-  // Place the product on the lowest level that still has room for one more facing.
-  addProduct: (fixtureId, sku) => {
+  // Add one facing on the given level if it has room for the product's width and height.
+  addProduct: (fixtureId, sku, level) => {
     const f = get().fixtures.find((x) => x.id === fixtureId);
     if (!f) return false;
     const [pw, ph] = productBySku(sku).size;
     const levelHeight = f.kind === "table" ? Infinity : f.size[1] / f.shelves.length; // tall items only fit on tables
-    const level = ph > levelHeight ? -1 : f.shelves.findIndex((skus) => usedWidth(skus) + pw <= f.size[0]);
-    if (level < 0) return false;
+    if (ph > levelHeight || usedWidth(f.shelves[level]) + pw > f.size[0]) return false;
     set((s) => ({
       fixtures: s.fixtures.map((x) =>
         x.id === fixtureId ? { ...x, shelves: x.shelves.map((skus, i) => (i === level ? [...skus, sku] : skus)) } : x,

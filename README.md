@@ -2,8 +2,8 @@
 
 A tiny store floor planner built with React Three Fiber: shelves and tables on a 20x20 floor that
 you can select, move with the arrow keys and add from an ordinary HTML panel. Select a fixture and
-the panel turns into a small planogram editor: pick products from a catalog and they are placed as
-facings on the lowest shelf level with room (width and height are checked); click a facing to remove it.
+the panel turns into a small planogram editor: pick products from a catalog per shelf level and they are placed as
+facings on that level (width and height are checked); click a facing to remove it.
 Built as a short refresher on three.js concepts.
 
 ![Screenshot](screenshot.jpg)
