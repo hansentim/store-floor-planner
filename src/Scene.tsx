@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Environment, Grid, Html, OrbitControls, OrthographicCamera, PerspectiveCamera, useProgress } from "@react-three/drei";
+import { Environment, Grid, OrbitControls, OrthographicCamera, PerspectiveCamera, useProgress } from "@react-three/drei";
 import { FLOOR_SIZE, useStore } from "./store";
 import { Fixture } from "./Fixture";
 import { DisplayItem } from "./DisplayItem";
@@ -59,7 +59,7 @@ export function Scene() {
       ))}
 
       {/* A glTF model streams in asynchronously; the rest of the scene renders meanwhile. */}
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={null}>
         <DisplayItem />
       </Suspense>
 
@@ -70,12 +70,15 @@ export function Scene() {
   );
 }
 
-// Html renders ordinary DOM on top of the canvas at a 3D position; useProgress reports loader progress.
-function Loader() {
-  const { progress } = useProgress();
+// useProgress reports three.js loader progress and works outside the Canvas too, so the indicator
+// is ordinary DOM layered over the canvas. (drei's <Html> as a Suspense fallback crashed React
+// on unmount in production, so the overlay lives outside the 3D tree.)
+export function Loader() {
+  const { active, progress } = useProgress();
+  if (!active) return null;
   return (
-    <Html center style={{ color: "#555", fontFamily: "system-ui", whiteSpace: "nowrap" }}>
+    <div style={{ position: "absolute", top: 12, right: 12, padding: "6px 10px", borderRadius: 6, background: "#1a1b26", color: "#c0caf5", fontSize: 13, fontFamily: "system-ui" }}>
       Loading {Math.round(progress)} %
-    </Html>
+    </div>
   );
 }

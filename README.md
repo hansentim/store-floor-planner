@@ -29,6 +29,6 @@ With a fixture selected, use the "+ Product" buttons in the panel to fill its sh
 - **Raycasting / picking** – R3F raycasts from the camera through the pointer, so a pointer handler on the fixture group is all it takes to select it (events bubble from the hit product mesh up to the group); `onPointerMissed` on the canvas deselects.
 - **Dragging in world space** – the pointer event carries the ray; intersecting it with the floor plane (`ray.intersectPlane`) turns a 2D cursor into a 3D floor point, which works for both cameras. OrbitControls is paused while dragging.
 - **OrbitControls** – the drei helper that turns pointer drags into camera orbit, zoom and pan.
-- **HTML inside the scene** – drei `<Html>` positions ordinary DOM in 3D space; here it shows loader progress from `useProgress` while the glTF streams in.
+- **Loader progress in plain HTML** – drei's `useProgress` exposes three.js loading progress to any React component, so the "Loading" indicator is ordinary DOM layered over the canvas.
 - **Shared state between 3D and HTML** – one zustand store drives both the meshes and the plain HTML list; the planogram editor is ordinary React that writes to the same store ([store.ts](src/store.ts), [Panel.tsx](src/Panel.tsx)).
 - **glTF** – a display chair (the Khronos "SheenChair" sample asset in `public/`) is loaded with `useGLTF` inside `<Suspense>` and mounted with `<primitive>` ([DisplayItem.tsx](src/DisplayItem.tsx)).

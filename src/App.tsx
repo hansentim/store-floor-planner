@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Panel } from "./Panel";
-import { Scene } from "./Scene";
+import { Loader, Scene } from "./Scene";
 import { useStore } from "./store";
 
 const keys: Record<string, [dx: number, dz: number]> = {
@@ -26,8 +26,9 @@ export default function App() {
   return (
     <div style={{ display: "flex", height: "100vh" }}>
       <Panel />
-      <main style={{ flex: 1 }}>
+      <main style={{ flex: 1, position: "relative" }}>
         <Scene />
+        <Loader />
       </main>
     </div>
   );
