@@ -14,7 +14,7 @@ export function Fixture({ fixture }: { fixture: FixtureData }) {
   const levelHeight = h / fixture.shelves.length;
 
   // Height of the surface each level's products stand on (relative to the group).
-  const surfaceY = (level: number) => (fixture.kind === "table" ? h : level * levelHeight);
+  const surfaceY = (level: number) => (fixture.kind === "table" ? h : level * levelHeight + PLANK);
 
   return (
     // A group is a node in the scene graph: children inherit its transform, so moving the
@@ -49,9 +49,10 @@ export function Fixture({ fixture }: { fixture: FixtureData }) {
             <boxGeometry args={[w, h, PLANK]} />
             <meshStandardMaterial color={color} emissive={emissive} emissiveIntensity={selected ? 0.4 : 0.15} />
           </mesh>
-          {/* One plank per level, plus a top */}
-          {[...fixture.shelves.map((_, i) => i * levelHeight), h].map((y) => (
-            <mesh key={y} position={[0, y - PLANK / 2, 0]} castShadow receiveShadow>
+          {/* One plank per level, plus a top. The bottom plank stands on the floor rather than
+              inside it: two coplanar faces would z-fight and shimmer as the camera moves. */}
+          {[...fixture.shelves.map((_, i) => i * levelHeight + PLANK / 2), h - PLANK / 2].map((y) => (
+            <mesh key={y} position={[0, y, 0]} castShadow receiveShadow>
               <boxGeometry args={[w, PLANK, d]} />
               <meshStandardMaterial color={color} emissive={emissive} emissiveIntensity={selected ? 0.4 : 0.15} />
             </mesh>
