@@ -24,6 +24,9 @@ export function Scene() {
         intensity={1.2}
         castShadow
         shadow-mapSize={[2048, 2048]}
+        // Without a bias, surfaces shadow themselves ("shadow acne") and shimmer while the camera moves.
+        shadow-normalBias={0.03}
+        shadow-bias={-0.0002}
         shadow-camera-left={-15}
         shadow-camera-right={15}
         shadow-camera-top={15}
