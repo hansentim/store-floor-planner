@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { CATALOG, productBySku, useStore } from "./store";
+import "./panel.css";
 
 // Plain HTML UI reading the same store as the 3D scene.
 export function Panel() {
@@ -20,73 +21,65 @@ export function Panel() {
   }, [notice]);
 
   return (
-    <aside style={{ width: 260, padding: 12, background: "#1a1b26", color: "#c0caf5", fontFamily: "system-ui", overflowY: "auto" }}>
-      <h2 style={{ fontSize: 16, margin: "0 0 8px" }}>Fixtures</h2>
-      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-        {fixtures.map((f) => (
-          <li
-            key={f.id}
-            onClick={() => select(f.id)}
-            style={{
-              padding: "6px 8px",
-              cursor: "pointer",
-              borderRadius: 4,
-              background: f.id === selectedId ? "#ff9e64" : "transparent",
-              color: f.id === selectedId ? "#1a1b26" : undefined,
-            }}
-          >
-            {f.name} <small>({f.position[0]}, {f.position[1]})</small>
-          </li>
-        ))}
-      </ul>
-      <button onClick={add} style={{ marginTop: 12, width: "100%", padding: 8 }}>
-        Add shelf
-      </button>
-      <button onClick={toggleView} style={{ marginTop: 6, width: "100%", padding: 8 }}>
-        {view === "3d" ? "Show 2D plan" : "Show 3D view"}
-      </button>
+    <aside className="panel">
+      <section className="section">
+        <h2>Fixtures</h2>
+        <ul className="fixture-list">
+          {fixtures.map((f) => (
+            <li key={f.id} onClick={() => select(f.id)} className={f.id === selectedId ? "fixture selected" : "fixture"}>
+              {f.name}
+              <span className="badge">{f.position[0]}, {f.position[1]}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="row">
+          <button className="btn btn-primary" onClick={add}>+ Add shelf</button>
+          <button className="btn" onClick={toggleView}>{view === "3d" ? "2D plan" : "3D view"}</button>
+        </div>
+      </section>
 
       {selected && (
-        <>
-          <h2 style={{ fontSize: 16, margin: "20px 0 8px" }}>Planogram: {selected.name}</h2>
+        <section className="section">
+          <h2>Planogram</h2>
+          <div className="subtitle">{selected.name}</div>
           {/* Levels listed top to bottom, like a planogram sheet, each with its own catalog row */}
           {[...selected.shelves].map((_, i, arr) => arr.length - 1 - i).map((level) => (
-            <div key={level} style={{ marginTop: 12, fontSize: 13 }}>
-              <div style={{ opacity: 0.7 }}>Level {level + 1}</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, margin: "4px 0" }}>
-                {CATALOG.map((p) => (
+            <div key={level} className="level">
+              <div className="level-header">
+                Level {level + 1}
+                <span>{selected.shelves[level].length} {selected.shelves[level].length === 1 ? "facing" : "facings"}</span>
+              </div>
+              <div className="chips">
+                {selected.shelves[level].length === 0 && <div className="empty">Empty shelf</div>}
+                {selected.shelves[level].map((sku, i) => (
                   <button
-                    key={p.sku}
-                    onClick={() => addProduct(selected.id, p.sku, level) || setNotice(`No room for ${p.name} on level ${level + 1}`)}
-                    style={{ padding: "2px 6px", fontSize: 12, borderLeft: `5px solid ${p.color}` }}
+                    key={i}
+                    className="chip facing"
+                    onClick={() => removeProduct(selected.id, level, i)}
+                    aria-label={`Remove ${productBySku(sku).name}`}
+                    style={{ borderLeftColor: productBySku(sku).color }}
                   >
-                    + {p.name}
+                    {productBySku(sku).name} <span className="remove">✕</span>
                   </button>
                 ))}
               </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                {selected.shelves[level].length === 0 && <span style={{ opacity: 0.4 }}>empty</span>}
-                {selected.shelves[level].map((sku, i) => (
-                  <span
-                    key={i}
-                    onClick={() => removeProduct(selected.id, level, i)}
-                    title="Click to remove"
-                    style={{ cursor: "pointer", padding: "2px 6px", borderRadius: 3, background: productBySku(sku).color, color: "#1a1b26" }}
+              <div className="chips">
+                {CATALOG.map((p) => (
+                  <button
+                    key={p.sku}
+                    className="chip"
+                    onClick={() => addProduct(selected.id, p.sku, level) || setNotice(`No room for ${p.name} on level ${level + 1}`)}
                   >
-                    {productBySku(sku).name} ✕
-                  </span>
+                    <span className="dot" style={{ background: p.color }} />+ {p.name}
+                  </button>
                 ))}
               </div>
             </div>
           ))}
-        </>
+        </section>
       )}
-      {notice && (
-        <div style={{ position: "fixed", left: 12, bottom: 12, width: 236, padding: "8px 10px", borderRadius: 6, background: "#f7768e", color: "#1a1b26", fontSize: 13 }}>
-          {notice}
-        </div>
-      )}
-      <p style={{ fontSize: 12, opacity: 0.7, marginTop: 20 }}>Drag a fixture to move it (or arrow keys), drag the floor to orbit, scroll to zoom.</p>
+      {notice && <div className="toast" role="status">{notice}</div>}
+      <p className="hint">Drag a fixture to move it (or arrow keys), drag the floor to orbit, scroll to zoom.</p>
     </aside>
   );
 }
