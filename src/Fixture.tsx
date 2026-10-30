@@ -11,6 +11,7 @@ export function Fixture({ fixture }: { fixture: FixtureData }) {
   const selected = useStore((s) => s.selectedId === fixture.id);
   const blocked = useStore((s) => s.blocked && s.selectedId === fixture.id);
   const select = useStore((s) => s.select);
+  const focus = useStore((s) => s.focus);
   const setPosition = useStore((s) => s.setPosition);
   const setDragging = useStore((s) => s.setDragging);
   const [hovered, setHovered] = useState(false);
@@ -56,6 +57,10 @@ export function Fixture({ fixture }: { fixture: FixtureData }) {
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        focus(fixture.id);
+      }}
       onPointerOver={() => {
         setHovered(true);
         document.body.style.cursor = "pointer";

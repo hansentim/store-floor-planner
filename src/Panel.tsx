@@ -8,6 +8,7 @@ export function Panel() {
   const fixtures = useStore((s) => s.fixtures);
   const selectedId = useStore((s) => s.selectedId);
   const select = useStore((s) => s.select);
+  const focus = useStore((s) => s.focus);
   const add = useStore((s) => s.add);
   const addProduct = useStore((s) => s.addProduct);
   const removeProduct = useStore((s) => s.removeProduct);
@@ -39,7 +40,10 @@ export function Panel() {
         </div>
         <ul className="fixture-list">
           {fixtures.map((f) => (
-            <li key={f.id} onClick={() => select(f.id)} className={f.id === selectedId ? "fixture selected" : "fixture"}>
+            <li key={f.id} onClick={() => {
+                select(f.id);
+                focus(f.id);
+              }} className={f.id === selectedId ? "fixture selected" : "fixture"}>
               {f.name}
               <span className="badge">{f.position[0]}, {f.position[1]}</span>
             </li>
@@ -96,7 +100,7 @@ export function Panel() {
         </section>
       )}
       {notice && <div className="toast" role="status">{notice}</div>}
-      <p className="hint">Drag a fixture to move it (or arrow keys), R rotates it, drag the floor to orbit, scroll to zoom.</p>
+      <p className="hint">Drag a fixture to move it (or arrow keys), R rotates it, double-click to focus it, drag the floor to orbit, scroll to zoom.</p>
     </aside>
   );
 }

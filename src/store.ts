@@ -40,6 +40,8 @@ type State = {
   dragStart: Fixture[] | null; // layout when the current drag began, so a whole drag is one undo step
   undo: () => void;
   redo: () => void;
+  focusTarget: [x: number, z: number] | null; // where the camera should glide to; a new array each request
+  focus: (id: number) => void;
   notify: (notice: string | null) => void;
   rotate: (id: number) => void;
   select: (id: number | null) => void;
@@ -95,6 +97,11 @@ export const useStore = create<State>((set, get) => ({
   notice: null,
   past: [],
   future: [],
+  focusTarget: null,
+  focus: (id) => {
+    const f = get().fixtures.find((x) => x.id === id);
+    if (f) set({ focusTarget: [...f.position] });
+  },
   dragStart: null,
   undo: () =>
     set((s) => (s.past.length ? { fixtures: s.past[s.past.length - 1], past: s.past.slice(0, -1), future: [s.fixtures, ...s.future] } : s)),
