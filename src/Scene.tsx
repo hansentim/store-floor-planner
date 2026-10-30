@@ -5,6 +5,7 @@ import { FLOOR_SIZE, useStore } from "./store";
 import { Fixture } from "./Fixture";
 import { DisplayItem } from "./DisplayItem";
 import { CameraFocus } from "./CameraFocus";
+import { DropTarget } from "./DropTarget";
 
 export function Scene() {
   const fixtures = useStore((s) => s.fixtures);
@@ -68,6 +69,7 @@ export function Scene() {
           camera changes, and rotation is off in plan view so it stays a top-down drawing. */}
       <OrbitControls key={view} makeDefault enabled={!dragging} enableRotate={view === "3d"} maxPolarAngle={Math.PI / 2.1} />
       <CameraFocus />
+      <DropTarget />
     </Canvas>
   );
 }

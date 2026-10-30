@@ -54,6 +54,7 @@ export function Fixture({ fixture }: { fixture: FixtureData }) {
     <group
       position={[fixture.position[0], 0, fixture.position[1]]}
       rotation={[0, (fixture.rotation * Math.PI) / 2, 0]} // rotating the group turns planks and products together
+      userData={{ fixtureId: fixture.id }} // lets a raycast hit on any child find its fixture (see DropTarget)
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}

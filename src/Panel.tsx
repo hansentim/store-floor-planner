@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { CATALOG, productBySku, useStore } from "./store";
 import "./panel.css";
 import { FrontView } from "./FrontView";
+import { SKU_MIME } from "./DropTarget";
 
 // Plain HTML UI reading the same store as the 3D scene.
 export function Panel() {
@@ -88,7 +89,13 @@ export function Panel() {
                 {CATALOG.map((p) => (
                   <button
                     key={p.sku}
-                    className="chip"
+                    className="chip catalog-chip"
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData(SKU_MIME, p.sku);
+                      e.dataTransfer.effectAllowed = "copy";
+                    }}
+                    title={`Add to level ${level + 1}, or drag onto any shelf in 3D`}
                     onClick={() => addProduct(selected.id, p.sku, level) || setNotice(`No room for ${p.name} on level ${level + 1}`)}
                   >
                     <span className="dot" style={{ background: p.color }} />+ {p.name}
@@ -100,7 +107,7 @@ export function Panel() {
         </section>
       )}
       {notice && <div className="toast" role="status">{notice}</div>}
-      <p className="hint">Drag a fixture to move it (or arrow keys), R rotates it, double-click to focus it, drag the floor to orbit, scroll to zoom.</p>
+      <p className="hint">Drag a fixture to move it (or arrow keys), R rotates it, double-click to focus it, drag a product chip onto a shelf to stock it, drag the floor to orbit, scroll to zoom.</p>
     </aside>
   );
 }

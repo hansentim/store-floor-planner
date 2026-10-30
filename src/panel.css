@@ -149,3 +149,4 @@
 .icon-buttons { display: flex; gap: 4px; }
 .btn:disabled { opacity: 0.4; cursor: default; }
 .btn:disabled:hover { background: var(--surface); }
+.catalog-chip { cursor: grab; }
