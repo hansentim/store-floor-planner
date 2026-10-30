@@ -28,7 +28,9 @@
   color: var(--muted);
 }
 
-.panel h2 + .subtitle { margin: -6px 0 12px; font-size: 15px; font-weight: 600; color: var(--text); }
+.subtitle-row { display: flex; align-items: center; justify-content: space-between; margin: -6px 0 12px; }
+.subtitle { font-size: 15px; font-weight: 600; color: var(--text); }
+.btn-small { padding: 4px 8px; font-size: 12px; }
 
 .section + .section { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
 

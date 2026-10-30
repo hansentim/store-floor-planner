@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { CATALOG, productBySku, useStore } from "./store";
 import "./panel.css";
 import { FrontView } from "./FrontView";
@@ -14,12 +14,14 @@ export function Panel() {
   const view = useStore((s) => s.view);
   const toggleView = useStore((s) => s.toggleView);
   const selected = fixtures.find((f) => f.id === selectedId);
-  const [notice, setNotice] = useState<string | null>(null);
+  const rotate = useStore((s) => s.rotate);
+  const notice = useStore((s) => s.notice);
+  const setNotice = useStore((s) => s.notify);
   useEffect(() => {
     if (!notice) return;
     const t = setTimeout(() => setNotice(null), 2500);
     return () => clearTimeout(t);
-  }, [notice]);
+  }, [notice, setNotice]);
 
   return (
     <aside className="panel">
@@ -42,7 +44,10 @@ export function Panel() {
       {selected && (
         <section className="section">
           <h2>Planogram</h2>
-          <div className="subtitle">{selected.name}</div>
+          <div className="subtitle-row">
+            <div className="subtitle">{selected.name}</div>
+            <button className="btn btn-small" onClick={() => rotate(selected.id)} title="Rotate (R)">⟳ Rotate</button>
+          </div>
           <FrontView fixture={selected} />
           {/* Levels listed top to bottom, like a planogram sheet, each with its own catalog row */}
           {[...selected.shelves].map((_, i, arr) => arr.length - 1 - i).map((level) => (
@@ -81,7 +86,7 @@ export function Panel() {
         </section>
       )}
       {notice && <div className="toast" role="status">{notice}</div>}
-      <p className="hint">Drag a fixture to move it (or arrow keys), drag the floor to orbit, scroll to zoom.</p>
+      <p className="hint">Drag a fixture to move it (or arrow keys), R rotates it, drag the floor to orbit, scroll to zoom.</p>
     </aside>
   );
 }

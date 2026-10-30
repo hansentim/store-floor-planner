@@ -9,6 +9,7 @@ const FLOOR = new Plane(new Vector3(0, 1, 0), 0); // the plane y = 0, used to tu
 
 export function Fixture({ fixture }: { fixture: FixtureData }) {
   const selected = useStore((s) => s.selectedId === fixture.id);
+  const blocked = useStore((s) => s.blocked && s.selectedId === fixture.id);
   const select = useStore((s) => s.select);
   const setPosition = useStore((s) => s.setPosition);
   const setDragging = useStore((s) => s.setDragging);
@@ -38,8 +39,8 @@ export function Fixture({ fixture }: { fixture: FixtureData }) {
     setDragging(false);
   };
   const [w, h, d] = fixture.size;
-  const color = selected ? "#ff9e64" : fixture.color;
-  const emissive = selected ? "#ff9e64" : hovered ? "#ffffff" : "#000000";
+  const color = blocked ? "#f7768e" : selected ? "#ff9e64" : fixture.color; // red while a move is refused
+  const emissive = blocked ? "#f7768e" : selected ? "#ff9e64" : hovered ? "#ffffff" : "#000000";
   const levelHeight = h / fixture.shelves.length;
 
   // Height of the surface each level's products stand on (relative to the group).
@@ -51,6 +52,7 @@ export function Fixture({ fixture }: { fixture: FixtureData }) {
     // so grabbing a product drags its fixture.
     <group
       position={[fixture.position[0], 0, fixture.position[1]]}
+      rotation={[0, (fixture.rotation * Math.PI) / 2, 0]} // rotating the group turns planks and products together
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
