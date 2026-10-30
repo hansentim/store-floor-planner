@@ -15,6 +15,10 @@ export function Panel() {
   const toggleView = useStore((s) => s.toggleView);
   const selected = fixtures.find((f) => f.id === selectedId);
   const rotate = useStore((s) => s.rotate);
+  const undo = useStore((s) => s.undo);
+  const redo = useStore((s) => s.redo);
+  const canUndo = useStore((s) => s.past.length > 0);
+  const canRedo = useStore((s) => s.future.length > 0);
   const notice = useStore((s) => s.notice);
   const setNotice = useStore((s) => s.notify);
   useEffect(() => {
@@ -26,7 +30,13 @@ export function Panel() {
   return (
     <aside className="panel">
       <section className="section">
-        <h2>Fixtures</h2>
+        <div className="section-header">
+          <h2>Fixtures</h2>
+          <div className="icon-buttons">
+            <button className="btn btn-small" onClick={undo} disabled={!canUndo} title="Undo (⌘Z)" aria-label="Undo">↶</button>
+            <button className="btn btn-small" onClick={redo} disabled={!canRedo} title="Redo (⇧⌘Z)" aria-label="Redo">↷</button>
+          </div>
+        </div>
         <ul className="fixture-list">
           {fixtures.map((f) => (
             <li key={f.id} onClick={() => select(f.id)} className={f.id === selectedId ? "fixture selected" : "fixture"}>

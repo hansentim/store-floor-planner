@@ -143,3 +143,9 @@
 .front-body { fill: #e0af68; stroke: #565f89; stroke-width: 0.03; }
 .front-plank { stroke: #565f89; stroke-width: 0.05; }
 .front-product { stroke: #1a1b26; stroke-width: 0.015; }
+
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.section-header h2 { margin: 0; }
+.icon-buttons { display: flex; gap: 4px; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn:disabled:hover { background: var(--surface); }

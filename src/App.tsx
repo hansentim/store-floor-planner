@@ -13,7 +13,11 @@ const keys: Record<string, [dx: number, dz: number]> = {
 export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const { selectedId, move, rotate } = useStore.getState();
+      const { selectedId, move, rotate, undo, redo } = useStore.getState();
+      if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === "z" || e.key.toLowerCase() === "y")) {
+        e.preventDefault();
+        return e.key.toLowerCase() === "y" || e.shiftKey ? redo() : undo();
+      }
       if (selectedId !== null && e.key.toLowerCase() === "r" && !e.metaKey && !e.ctrlKey) return rotate(selectedId);
       const delta = keys[e.key];
       if (selectedId === null || !delta) return;

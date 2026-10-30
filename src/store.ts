@@ -35,6 +35,11 @@ type State = {
   view: "3d" | "plan";
   blocked: boolean; // the last move or rotation was refused because it would overlap another fixture
   notice: string | null;
+  past: Fixture[][]; // undo stack of whole-layout snapshots; fixtures are immutable, so snapshots are cheap
+  future: Fixture[][];
+  dragStart: Fixture[] | null; // layout when the current drag began, so a whole drag is one undo step
+  undo: () => void;
+  redo: () => void;
   notify: (notice: string | null) => void;
   rotate: (id: number) => void;
   select: (id: number | null) => void;
@@ -76,6 +81,11 @@ export const overlaps = (a: Fixture, b: Fixture) => {
 export const fits = (fixtures: Fixture[], candidate: Fixture) =>
   !fixtures.some((o) => o.id !== candidate.id && overlaps(o, candidate));
 
+// Record a layout change in the undo history. While dragging, intermediate positions are not
+// recorded; setDragging(false) records the drag as a single step instead.
+const commit = (s: State, fixtures: Fixture[]) =>
+  s.dragging ? { fixtures } : { fixtures, past: [...s.past, s.fixtures].slice(-50), future: [] };
+
 export const useStore = create<State>((set, get) => ({
   fixtures: seed,
   selectedId: null,
@@ -83,16 +93,28 @@ export const useStore = create<State>((set, get) => ({
   view: "3d",
   blocked: false,
   notice: null,
+  past: [],
+  future: [],
+  dragStart: null,
+  undo: () =>
+    set((s) => (s.past.length ? { fixtures: s.past[s.past.length - 1], past: s.past.slice(0, -1), future: [s.fixtures, ...s.future] } : s)),
+  redo: () =>
+    set((s) => (s.future.length ? { fixtures: s.future[0], future: s.future.slice(1), past: [...s.past, s.fixtures] } : s)),
   notify: (notice) => set({ notice }),
   rotate: (id) => {
     const f = get().fixtures.find((x) => x.id === id);
     if (!f) return;
     const turned = { ...f, rotation: (f.rotation + 1) % 4 };
     if (!fits(get().fixtures, turned)) return set({ blocked: true, notice: `No room to rotate ${f.name}` });
-    set((s) => ({ blocked: false, fixtures: s.fixtures.map((x) => (x.id === id ? turned : x)) }));
+    set((s) => ({ blocked: false, ...commit(s, s.fixtures.map((x) => (x.id === id ? turned : x))) }));
   },
   select: (id) => set({ selectedId: id }),
-  setDragging: (dragging) => set({ dragging, blocked: false }),
+  setDragging: (dragging) =>
+    set((s) => {
+      if (dragging) return { dragging, blocked: false, dragStart: s.fixtures };
+      const moved = s.dragStart && s.dragStart !== s.fixtures;
+      return { dragging, blocked: false, dragStart: null, ...(moved && { past: [...s.past, s.dragStart!].slice(-50), future: [] }) };
+    }),
   toggleView: () => set((s) => ({ view: s.view === "3d" ? "plan" : "3d" })),
   // Snap to a 1-unit grid, keep the fixture on the floor, and refuse positions that overlap another fixture.
   setPosition: (id, x, z) => {
@@ -101,7 +123,7 @@ export const useStore = create<State>((set, get) => ({
     const moved: Fixture = { ...f, position: [clamp(Math.round(x)), clamp(Math.round(z))] };
     if (moved.position[0] === f.position[0] && moved.position[1] === f.position[1]) return;
     if (!fits(get().fixtures, moved)) return set({ blocked: true });
-    set((s) => ({ blocked: false, fixtures: s.fixtures.map((x) => (x.id === id ? moved : x)) }));
+    set((s) => ({ blocked: false, ...commit(s, s.fixtures.map((x) => (x.id === id ? moved : x))) }));
   },
   move: (id, dx, dz) => {
     const f = get().fixtures.find((x) => x.id === id);
@@ -116,7 +138,7 @@ export const useStore = create<State>((set, get) => ({
       for (const z of spots)
         for (const x of spots) {
           const candidate: Fixture = { ...shelf, position: [x, z] };
-          if (fits(s.fixtures, candidate)) return { fixtures: [...s.fixtures, candidate], selectedId: id };
+          if (fits(s.fixtures, candidate)) return { ...commit(s, [...s.fixtures, candidate]), selectedId: id };
         }
       return { notice: "The floor is full" };
     }),
@@ -127,17 +149,21 @@ export const useStore = create<State>((set, get) => ({
     const [pw, ph] = productBySku(sku).size;
     const levelHeight = f.kind === "table" ? Infinity : f.size[1] / f.shelves.length; // tall items only fit on tables
     if (ph > levelHeight || usedWidth(f.shelves[level]) + pw > f.size[0]) return false;
-    set((s) => ({
-      fixtures: s.fixtures.map((x) =>
-        x.id === fixtureId ? { ...x, shelves: x.shelves.map((skus, i) => (i === level ? [...skus, sku] : skus)) } : x,
+    set((s) =>
+      commit(
+        s,
+        s.fixtures.map((x) => (x.id === fixtureId ? { ...x, shelves: x.shelves.map((skus, i) => (i === level ? [...skus, sku] : skus)) } : x)),
       ),
-    }));
+    );
     return true;
   },
   removeProduct: (fixtureId, level, index) =>
-    set((s) => ({
-      fixtures: s.fixtures.map((x) =>
-        x.id === fixtureId ? { ...x, shelves: x.shelves.map((skus, i) => (i === level ? skus.filter((_, j) => j !== index) : skus)) } : x,
+    set((s) =>
+      commit(
+        s,
+        s.fixtures.map((x) =>
+          x.id === fixtureId ? { ...x, shelves: x.shelves.map((skus, i) => (i === level ? skus.filter((_, j) => j !== index) : skus)) } : x,
+        ),
       ),
-    })),
+    ),
 }));
