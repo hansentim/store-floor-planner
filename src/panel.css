@@ -135,3 +135,9 @@
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
 
 .hint { margin: 24px 0 0; font-size: 12px; color: var(--muted); }
+
+.front-view { display: block; width: 100%; max-height: 180px; margin-bottom: 4px; padding: 8px; border-radius: 8px; background: #e5e5e5; }
+.front-frame { fill: #d4d8e8; stroke: #565f89; stroke-width: 0.03; }
+.front-body { fill: #e0af68; stroke: #565f89; stroke-width: 0.03; }
+.front-plank { stroke: #565f89; stroke-width: 0.05; }
+.front-product { stroke: #1a1b26; stroke-width: 0.015; }

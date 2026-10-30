@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CATALOG, productBySku, useStore } from "./store";
 import "./panel.css";
+import { FrontView } from "./FrontView";
 
 // Plain HTML UI reading the same store as the 3D scene.
 export function Panel() {
@@ -42,6 +43,7 @@ export function Panel() {
         <section className="section">
           <h2>Planogram</h2>
           <div className="subtitle">{selected.name}</div>
+          <FrontView fixture={selected} />
           {/* Levels listed top to bottom, like a planogram sheet, each with its own catalog row */}
           {[...selected.shelves].map((_, i, arr) => arr.length - 1 - i).map((level) => (
             <div key={level} className="level">
